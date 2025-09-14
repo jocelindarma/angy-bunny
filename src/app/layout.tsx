@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Welcome to the 3AM Club",
-  description: "where sleepless developers unite",
+  title: "Angy Bunny Bakehouse",
+  description: "sweetest treats baked with love",
 };
 
 export default function RootLayout({
