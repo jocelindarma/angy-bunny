@@ -5,18 +5,22 @@ import { useRouter } from "next/navigation";
 import Cart from "@/components/Cart";
 import { CartItem } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
+import { awardLoyaltyPoints } from "@/lib/loyalty";
 
 export default function CartPage() {
   const [paying, setPaying] = useState(false);
   const [paid, setPaid] = useState(false);
+  const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
   const router = useRouter();
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
 
-  function handlePay() {
+  async function handlePay() {
     setPaying(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       setPaying(false);
       setPaid(true);
+      const points = await awardLoyaltyPoints(cart);
+      setPointsAwarded(points);
       clearCart();
     }, 1500);
   }
@@ -43,6 +47,12 @@ export default function CartPage() {
         ) : (
           <div className="mt-6 text-center text-green-600 font-bold text-xl">
             Payment Successful! Thank you 💖
+            {pointsAwarded !== null && pointsAwarded > 0 && (
+              <div className="text-rose-700 text-lg mt-2">
+                You earned {pointsAwarded} loyalty point
+                {pointsAwarded > 1 ? "s" : ""}!
+              </div>
+            )}
           </div>
         )}
         <button
