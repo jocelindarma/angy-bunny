@@ -5,7 +5,7 @@ import Section from "@/components/Section";
 import Story from "@/components/Story";
 import Menu from "@/components/Menu";
 import Contact from "@/components/Contact";
-import Loyalty from "@/components/Loyalty";
+import Rewards from "@/components/Rewards";
 import { MENU } from "@/lib/menu";
 import { useCart } from "@/context/CartContext";
 
@@ -25,7 +25,7 @@ export default function Home() {
       </Section>
 
       <Section>
-        <Loyalty />
+        <Rewards />
       </Section>
 
       <Section>

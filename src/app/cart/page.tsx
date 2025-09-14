@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cart from "@/components/Cart";
 import { CartItem } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
 import { awardLoyaltyPoints } from "@/lib/loyalty";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function CartPage() {
   const [paying, setPaying] = useState(false);
   const [paid, setPaid] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+  }, []);
 
   async function handlePay() {
     setPaying(true);
@@ -36,6 +42,17 @@ export default function CartPage() {
           updateQty={updateQty}
           removeFromCart={removeFromCart}
         />
+        {!user && !paid && (
+          <div className="mb-4 text-center text-rose-500 text-sm bg-rose-50 border border-pink-100 rounded-lg py-3 px-2">
+            Are you part of the Rewards Program?{" "}
+            <button
+              className="text-rose-600 underline hover:text-rose-800 font-semibold"
+              onClick={() => router.push("/auth")}
+            >
+              Sign In to earn Brownie Points
+            </button>
+          </div>
+        )}
         {!paid ? (
           <button
             className="w-full mt-6 bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-60"
