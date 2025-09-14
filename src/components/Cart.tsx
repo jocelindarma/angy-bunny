@@ -10,7 +10,9 @@ type Props = {
 };
 
 export default function Cart({ cart, updateQty, removeFromCart }: Props) {
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const total = cart
+    .filter((item) => !item.free)
+    .reduce((sum, i) => sum + i.price * i.qty, 0);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-pink-100 p-6">
@@ -22,9 +24,17 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
       ) : (
         <div className="space-y-3">
           {cart.map((item) => (
-            <div key={item.id} className="flex items-center justify-between">
+            <div
+              key={item.id + (item.free ? "-free" : "")}
+              className="flex items-center justify-between"
+            >
               <div className="text-rose-700">
                 <span className="font-medium">{item.name}</span>
+                {item.free && (
+                  <span className="ml-2 px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-bold">
+                    FREE
+                  </span>
+                )}
                 <span className="mx-2">×</span>
                 <input
                   type="number"
@@ -37,9 +47,10 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
                     )
                   }
                   className="w-14 mx-1 border border-rose-200 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  disabled={item.free}
                 />
                 <span className="ml-2 text-rose-600">
-                  {toCurrency(item.price * item.qty)}
+                  {item.free ? "FREE" : toCurrency(item.price * item.qty)}
                 </span>
               </div>
               <button
@@ -51,7 +62,10 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
             </div>
           ))}
           <div className="font-bold text-right mt-4 text-rose-700">
-            Total: {toCurrency(total)}
+            Total:{" "}
+            {toCurrency(
+              cart.filter((i) => !i.free).reduce((sum, i) => sum + i.price * i.qty, 0)
+            )}
           </div>
         </div>
       )}

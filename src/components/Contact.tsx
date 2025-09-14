@@ -9,11 +9,11 @@ export default function Contact() {
         Contact Us
       </h2>
       <div className="flex justify-center gap-6 text-rose-600">
-        <a href="mailto:jocelindarma13@gmail.com" aria-label="Email">
+        <a href="mailto:yaneali73@gmail.com" aria-label="Email">
           <Envelope className="w-6 h-6 hover:text-rose-800 transition-colors" />
         </a>
         <a
-          href="https://instagram.com/jocelindarma"
+          href="https://instagram.com/yaneali"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram"
