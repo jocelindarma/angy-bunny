@@ -8,7 +8,6 @@ import { LogOut } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { MENU } from "@/lib/menu";
-import userBunny from "@/../public/assets/user-bunny.png";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -102,7 +101,7 @@ export default function ProfilePage() {
           ← Back to Shop
         </button>
         <Image
-          src={userBunny}
+          src="/assets/user-bunny.png"
           alt="User Bunny"
           width={64}
           height={64}

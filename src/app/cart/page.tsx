@@ -7,7 +7,6 @@ import Cart from "@/components/Cart";
 import { useCart } from "@/context/CartContext";
 import { awardLoyaltyPoints } from "@/lib/loyalty";
 import { supabase } from "@/lib/supabaseClient";
-import angelBunny from "@/../public/assets/angel-bunny.png";
 import Image from "next/image";
 import { useRemoveFreeBrownieWithRefund } from "@/lib/useRemoveFreeBrownieWithRefund";
 
@@ -91,7 +90,7 @@ export default function CartPage() {
               )}
             </div>
             <Image
-              src={angelBunny}
+              src="/assets/angel-bunny.png"
               alt="Angel Bunny"
               width={80}
               height={80}
