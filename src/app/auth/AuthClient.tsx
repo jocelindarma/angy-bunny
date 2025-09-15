@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 export default function AuthClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
+  const redirect = searchParams?.get("redirect") || "/";
   const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {

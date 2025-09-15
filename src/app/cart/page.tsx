@@ -11,9 +11,15 @@ import Image from "next/image";
 import { useRemoveFreeBrownieWithRefund } from "@/lib/useRemoveFreeBrownieWithRefund";
 import { toCurrency } from "@/lib/currency";
 import { calcDistanceKm, getDeliveryFee } from "@/lib/delivery";
+import { QRISDisplay } from "@/components/QRISDisplay";
 import { NominatimAutocomplete } from "@/components/NominatimAutocomplete";
 
 export default function CartPage() {
+  type QRISState = {
+    qrString: string;
+    qrUrl: string;
+    id: string;
+  } | null;
   const [paying, setPaying] = useState(false);
   const [paid, setPaid] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
@@ -28,6 +34,9 @@ export default function CartPage() {
     lon: undefined as undefined | string,
   });
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [qris, setQris] = useState<QRISState>(null);
+  const [qrisLoading, setQrisLoading] = useState(false);
+  const [qrisError, setQrisError] = useState<string | null>(null);
   // Per-field error state
   const [deliveryErrors, setDeliveryErrors] = useState<{
     name?: string;
@@ -94,14 +103,25 @@ export default function CartPage() {
       return;
     }
     if (!validateDelivery()) return;
-    setPaying(true);
-    setTimeout(async () => {
-      setPaying(false);
-      setPaid(true);
-      const points = await awardLoyaltyPoints(cart);
-      setPointsAwarded(points);
-      clearCart();
-    }, 1500);
+    setQrisError(null);
+    setQrisLoading(true);
+    try {
+      const res = await fetch("/api/create-qris", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: orderTotal,
+          reference_id: `order-${Date.now()}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create QRIS");
+      setQris({ qrString: data.qr_string, qrUrl: data.qr_url, id: data.id });
+    } catch (err: any) {
+      setQrisError(err.message || "Failed to create QRIS");
+    } finally {
+      setQrisLoading(false);
+    }
   }
 
   const subtotal = cart
@@ -273,13 +293,40 @@ export default function CartPage() {
                 </button>
               </div>
             )}
-            <button
-              className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-60"
-              onClick={showDelivery ? handlePay : handleShowDelivery}
-              disabled={cart.length === 0 || paying}
-            >
-              {paying ? "Processing..." : "Pay Now"}
-            </button>
+            {/* QRIS payment flow */}
+            {qris ? (
+              <>
+                <QRISDisplay qrString={qris.qrString} qrUrl={qris.qrUrl} />
+                <div className="text-center text-rose-700 mb-4">After payment, click below:</div>
+                <button
+                  className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-60"
+                  onClick={async () => {
+                    setPaying(true);
+                    setTimeout(async () => {
+                      setPaying(false);
+                      setPaid(true);
+                      const points = await awardLoyaltyPoints(cart);
+                      setPointsAwarded(points);
+                      clearCart();
+                    }, 1500);
+                  }}
+                  disabled={paying}
+                >
+                  {paying ? "Processing..." : "Payment Complete"}
+                </button>
+              </>
+            ) : (
+              <button
+                className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-60"
+                onClick={showDelivery ? handlePay : handleShowDelivery}
+                disabled={cart.length === 0 || qrisLoading}
+              >
+                {qrisLoading ? "Generating QRIS..." : "Pay Now"}
+              </button>
+            )}
+            {qrisError && (
+              <div className="text-red-500 text-center mt-2">{qrisError}</div>
+            )}
             <button
               className="w-full mt-6 text-rose-400 underline hover:text-rose-600"
               onClick={() => router.push("/")}
