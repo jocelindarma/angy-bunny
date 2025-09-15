@@ -5,12 +5,14 @@ import { toCurrency } from "@/lib/currency";
 
 type Props = {
   cart: CartItem[];
-  updateQty: (id: number, qty: number) => void;
-  removeFromCart: (id: number) => void;
+  updateQty: (id: number, qty: number, free: boolean) => void;
+  removeFromCart: (id: number, free: boolean) => void;
 };
 
 export default function Cart({ cart, updateQty, removeFromCart }: Props) {
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const total = cart
+    .filter((item) => !item.free)
+    .reduce((sum, i) => sum + i.price * i.qty, 0);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-pink-100 p-6">
@@ -22,9 +24,17 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
       ) : (
         <div className="space-y-3">
           {cart.map((item) => (
-            <div key={item.id} className="flex items-center justify-between">
+            <div
+              key={`${item.id}-${item.free ? "free" : "paid"}`}
+              className="flex items-center justify-between"
+            >
               <div className="text-rose-700">
                 <span className="font-medium">{item.name}</span>
+                {item.free && (
+                  <span className="ml-2 px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-bold">
+                    FREE
+                  </span>
+                )}
                 <span className="mx-2">×</span>
                 <input
                   type="number"
@@ -33,25 +43,30 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
                   onChange={(e) =>
                     updateQty(
                       item.id,
-                      Math.max(1, parseInt(e.target.value || "1", 10))
+                      Math.max(1, parseInt(e.target.value || "1", 10)),
+                      !!item.free
                     )
                   }
                   className="w-14 mx-1 border border-rose-200 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  disabled={item.free}
                 />
                 <span className="ml-2 text-rose-600">
-                  {toCurrency(item.price * item.qty)}
+                  {item.free ? "FREE" : toCurrency(item.price)}
                 </span>
               </div>
               <button
                 className="text-rose-500 hover:text-rose-600 underline decoration-dotted"
-                onClick={() => removeFromCart(item.id)}
+                onClick={() => removeFromCart(item.id, !!item.free)}
               >
                 Remove
               </button>
             </div>
           ))}
           <div className="font-bold text-right mt-4 text-rose-700">
-            Total: {toCurrency(total)}
+            Total: {" "}
+            {toCurrency(
+              cart.filter((i) => !i.free).reduce((sum, i) => sum + i.price * i.qty, 0)
+            )}
           </div>
         </div>
       )}

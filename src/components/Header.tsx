@@ -1,13 +1,17 @@
 import Image from "next/image";
 import CartButton from "@/components/CartButton";
 import { useCart } from "@/context/CartContext";
+import dynamic from "next/dynamic";
+
+const UserPoints = dynamic(() => import("@/components/UserPoints"), { ssr: false });
 
 export default function Header() {
   const { cart } = useCart();
   return (
     <header className="w-full py-8 bg-gradient-to-r from-rose-100 via-pink-50 to-rose-50 border-b border-rose-100 relative">
-      <div className="absolute right-4 top-4">
+      <div className="absolute right-4 top-4 flex gap-2 items-center">
         <CartButton cart={cart} />
+        <UserPoints />
       </div>
       <div className="max-w-3xl mx-auto px-4 text-center">
         <Image

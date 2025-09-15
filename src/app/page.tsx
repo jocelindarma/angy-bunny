@@ -5,6 +5,7 @@ import Section from "@/components/Section";
 import Story from "@/components/Story";
 import Menu from "@/components/Menu";
 import Contact from "@/components/Contact";
+import Rewards from "@/components/Rewards";
 import { MENU } from "@/lib/menu";
 import { useCart } from "@/context/CartContext";
 
@@ -21,6 +22,10 @@ export default function Home() {
 
       <Section>
         <Menu items={MENU} onAdd={addToCart} />
+      </Section>
+
+      <Section>
+        <Rewards />
       </Section>
 
       <Section>
