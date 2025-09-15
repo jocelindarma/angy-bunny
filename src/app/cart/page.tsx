@@ -11,7 +11,6 @@ import Image from "next/image";
 import { useRemoveFreeBrownieWithRefund } from "@/lib/useRemoveFreeBrownieWithRefund";
 import { toCurrency } from "@/lib/currency";
 import { calcDistanceKm, getDeliveryFee } from "@/lib/delivery";
-import { QRISDisplay } from "@/components/QRISDisplay";
 import { NominatimAutocomplete } from "@/components/NominatimAutocomplete";
 
 export default function CartPage() {
@@ -34,9 +33,6 @@ export default function CartPage() {
     lon: undefined as undefined | string,
   });
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
-  const [qris, setQris] = useState<QRISState>(null);
-  const [qrisLoading, setQrisLoading] = useState(false);
-  const [qrisError, setQrisError] = useState<string | null>(null);
   // Per-field error state
   const [deliveryErrors, setDeliveryErrors] = useState<{
     name?: string;
@@ -103,24 +99,41 @@ export default function CartPage() {
       return;
     }
     if (!validateDelivery()) return;
-    setQrisError(null);
-    setQrisLoading(true);
+    // Save order to Supabase and redirect to /cart/payment
+    const order = {
+      cart,
+      delivery,
+      subtotal,
+      delivery_fee: deliveryFee,
+      order_total: orderTotal,
+      reference_id: `order-${Date.now()}`,
+      user_id: user?.id || null,
+    };
     try {
-      const res = await fetch("/api/create-qris", {
+      const res = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: orderTotal,
-          reference_id: `order-${Date.now()}`,
-        }),
+        body: JSON.stringify(order),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create QRIS");
-      setQris({ qrString: data.qr_string, qrUrl: data.qr_url, id: data.id });
-    } catch (err: any) {
-      setQrisError(err.message || "Failed to create QRIS");
-    } finally {
-      setQrisLoading(false);
+      if (!res.ok || !data.order) {
+        alert(data.error || "Failed to save order");
+        return;
+      }
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(
+          "pendingOrder",
+          JSON.stringify({
+            ...order,
+            reference_id: data.order.reference_id,
+          })
+        );
+        setTimeout(() => {
+          router.push("/cart/payment");
+        }, 100);
+      }
+    } catch (err) {
+      alert("Failed to save order");
     }
   }
 
@@ -293,40 +306,13 @@ export default function CartPage() {
                 </button>
               </div>
             )}
-            {/* QRIS payment flow */}
-            {qris ? (
-              <>
-                <QRISDisplay qrString={qris.qrString} qrUrl={qris.qrUrl} />
-                <div className="text-center text-rose-700 mb-4">After payment, click below:</div>
-                <button
-                  className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-60"
-                  onClick={async () => {
-                    setPaying(true);
-                    setTimeout(async () => {
-                      setPaying(false);
-                      setPaid(true);
-                      const points = await awardLoyaltyPoints(cart);
-                      setPointsAwarded(points);
-                      clearCart();
-                    }, 1500);
-                  }}
-                  disabled={paying}
-                >
-                  {paying ? "Processing..." : "Payment Complete"}
-                </button>
-              </>
-            ) : (
-              <button
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-60"
-                onClick={showDelivery ? handlePay : handleShowDelivery}
-                disabled={cart.length === 0 || qrisLoading}
-              >
-                {qrisLoading ? "Generating QRIS..." : "Pay Now"}
-              </button>
-            )}
-            {qrisError && (
-              <div className="text-red-500 text-center mt-2">{qrisError}</div>
-            )}
+            <button
+              className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-60"
+              onClick={showDelivery ? handlePay : handleShowDelivery}
+              disabled={cart.length === 0}
+            >
+              Pay Now
+            </button>
             <button
               className="w-full mt-6 text-rose-400 underline hover:text-rose-600"
               onClick={() => router.push("/")}
