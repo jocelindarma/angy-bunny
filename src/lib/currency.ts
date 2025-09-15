@@ -1,6 +1,6 @@
-export const toCurrency = (v: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(v);
+export const toCurrency = (v: number) => {
+  const formatted = v
+    .toFixed(0)
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `Rp${formatted}`;
+};

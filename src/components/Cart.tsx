@@ -15,9 +15,9 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
     .reduce((sum, i) => sum + i.price * i.qty, 0);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-pink-100 p-6">
+    <div className="mb-4 bg-white rounded-2xl shadow-sm border border-pink-100 p-6">
       <h2 className="text-2xl font-semibold mb-3 text-center text-rose-700">
-        Cart
+        Your Cart
       </h2>
       {cart.length === 0 ? (
         <div className="text-rose-400 text-center">Your cart is empty.</div>
@@ -55,15 +55,15 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
                 </span>
               </div>
               <button
-                className="text-rose-500 hover:text-rose-600 underline decoration-dotted"
+                className="text-xs text-rose-500 hover:text-rose-600 underline decoration-dotted"
                 onClick={() => removeFromCart(item.id, !!item.free)}
               >
-                Remove
+                Remove Item
               </button>
             </div>
           ))}
           <div className="font-bold text-right mt-4 text-rose-700">
-            Total: {" "}
+            Subtotal: {" "}
             {toCurrency(
               cart.filter((i) => !i.free).reduce((sum, i) => sum + i.price * i.qty, 0)
             )}
