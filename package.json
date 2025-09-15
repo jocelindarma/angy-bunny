@@ -1,6 +1,6 @@
 {
-  "name": "sleepless-sketches",
-  "version": "0.1.0",
+  "name": "angy-bunny",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

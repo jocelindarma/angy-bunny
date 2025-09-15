@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
@@ -10,13 +11,13 @@ import { MENU } from "@/lib/menu";
 import userBunny from "@/../public/assets/user-bunny.png";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [points, setPoints] = useState<number | null>(null);
   const [redeeming, setRedeeming] = useState(false);
   const [redeemSuccess, setRedeemSuccess] = useState(false);
   const [redeemError, setRedeemError] = useState("");
   const router = useRouter();
-  const { cart, updateQty, removeFromCart, clearCart, addToCart } = useCart();
+  const { cart, addToCart } = useCart();
 
   useEffect(() => {
     const getUserAndPoints = async () => {

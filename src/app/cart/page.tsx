@@ -1,25 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Cart from "@/components/Cart";
-import { CartItem } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
 import { awardLoyaltyPoints } from "@/lib/loyalty";
 import { supabase } from "@/lib/supabaseClient";
 import angelBunny from "@/../public/assets/angel-bunny.png";
 import Image from "next/image";
+import { useRemoveFreeBrownieWithRefund } from "@/lib/useRemoveFreeBrownieWithRefund";
 
 export default function CartPage() {
   const [paying, setPaying] = useState(false);
   const [paid, setPaid] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
-  // Import the custom hook for free brownie refund
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { useRemoveFreeBrownieWithRefund } = require("@/lib/useRemoveFreeBrownieWithRefund");
   const handleRemoveFreeBrownie = useRemoveFreeBrownieWithRefund(user);
 
   useEffect(() => {

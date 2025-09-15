@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import brownieBunny from "@/../public/assets/brownie-bunny.png";
+import brownieBunny from "@/../public/assets/brownie-cup-bunny.png";
 import dollarBunny from "@/../public/assets/dollar-bunny.jpg";
 
 export default function Loyalty() {
@@ -43,14 +43,14 @@ export default function Loyalty() {
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-pink-100 flex flex-col items-center text-center">
           <h3 className="text-xl font-semibold text-rose-700 mb-2">Redeem</h3>
-          <p className="text-rose-600 mb-1">
+          <p className="text-rose-600 mb-5">
             Trade 100 BrowniePoints for a FREE Brownie Cup
           </p>
           <Image
             src={brownieBunny}
             alt="Brownie Bunny"
-            width={80}
-            height={80}
+            width={70}
+            height={70}
             className="mx-auto"
             priority
           />

@@ -51,7 +51,7 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
                   disabled={item.free}
                 />
                 <span className="ml-2 text-rose-600">
-                  {item.free ? "FREE" : toCurrency(item.price * item.qty)}
+                  {item.free ? "FREE" : toCurrency(item.price)}
                 </span>
               </div>
               <button
