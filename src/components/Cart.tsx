@@ -62,12 +62,7 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
               </button>
             </div>
           ))}
-          <div className="font-bold text-right mt-4 text-rose-700">
-            Subtotal: {" "}
-            {toCurrency(
-              cart.filter((i) => !i.free).reduce((sum, i) => sum + i.price * i.qty, 0)
-            )}
-          </div>
+          {/* Subtotal removed, now shown in summary section above Pay Now */}
         </div>
       )}
     </div>

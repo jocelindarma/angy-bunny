@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Cart from "@/components/Cart";
@@ -9,6 +9,8 @@ import { awardLoyaltyPoints } from "@/lib/loyalty";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { useRemoveFreeBrownieWithRefund } from "@/lib/useRemoveFreeBrownieWithRefund";
+import { toCurrency } from "@/lib/currency";
+import { calcDistanceKm, getDeliveryFee } from "@/lib/delivery";
 import { NominatimAutocomplete } from "@/components/NominatimAutocomplete";
 
 export default function CartPage() {
@@ -22,8 +24,19 @@ export default function CartPage() {
     contact: "+62",
     address: "",
     notes: "",
+    lat: undefined as undefined | string,
+    lon: undefined as undefined | string,
   });
-  const [deliveryError, setDeliveryError] = useState<string | null>(null);
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  // Per-field error state
+  const [deliveryErrors, setDeliveryErrors] = useState<{
+    name?: string;
+    contact?: string;
+    address?: string;
+  }>({});
+  const [addressOutOfRange, setAddressOutOfRange] = useState<string | null>(
+    null
+  );
   const router = useRouter();
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
   const handleRemoveFreeBrownie = useRemoveFreeBrownieWithRefund(user);
@@ -54,25 +67,25 @@ export default function CartPage() {
   }
 
   function validateDelivery() {
-    if (
-      !delivery.name.trim() ||
-      !delivery.address.trim() ||
-      !delivery.contact.trim()
-    ) {
-      setDeliveryError("Name, address, and contact number are required.");
-      return false;
+    const errors: { name?: string; contact?: string; address?: string } = {};
+    if (!delivery.name.trim()) {
+      errors.name = "Name is required.";
     }
-    if (!delivery.contact.startsWith("+62")) {
-      setDeliveryError("Contact number must start with +62.");
-      return false;
+    if (!delivery.address.trim()) {
+      errors.address = "Address is required.";
     }
-    const digits = delivery.contact.slice(3);
-    if (digits.length !== 10 || !/^[0-9]{10}$/.test(digits)) {
-      setDeliveryError("Invalid contact number");
-      return false;
+    if (!delivery.contact.trim()) {
+      errors.contact = "Contact number is required.";
+    } else if (!delivery.contact.startsWith("+62")) {
+      errors.contact = "Contact number must start with +62.";
+    } else {
+      const digits = delivery.contact.slice(3);
+      if (digits.length !== 10 || !/^[0-9]{10}$/.test(digits)) {
+        errors.contact = "Invalid contact number.";
+      }
     }
-    setDeliveryError(null);
-    return true;
+    setDeliveryErrors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   async function handlePay() {
@@ -90,6 +103,12 @@ export default function CartPage() {
       clearCart();
     }, 1500);
   }
+
+  const subtotal = cart
+    .filter((item) => !item.free)
+    .reduce((sum, i) => sum + i.price * i.qty, 0);
+  const deliveryFee = getDeliveryFee(distanceKm, cart.length);
+  const orderTotal = subtotal + deliveryFee;
 
   return (
     <div className="min-h-screen bg-rose-50 flex flex-col items-center py-10">
@@ -124,11 +143,16 @@ export default function CartPage() {
                 <input
                   id="name"
                   name="name"
-                  className="w-full mb-4 px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  className="w-full mb-1 px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300"
                   value={delivery.name}
                   onChange={handleDeliveryChange}
                   required
                 />
+                {deliveryErrors.name && (
+                  <div className="text-red-500 text-xs mb-3">
+                    {deliveryErrors.name}
+                  </div>
+                )}
                 <label
                   className="block text-rose-700 font-medium mb-2"
                   htmlFor="contact"
@@ -138,11 +162,16 @@ export default function CartPage() {
                 <input
                   id="contact"
                   name="contact"
-                  className="w-full mb-4 px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  className="w-full mb-1 px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300"
                   value={delivery.contact}
                   onChange={handleDeliveryChange}
                   required
                 />
+                {deliveryErrors.contact && (
+                  <div className="text-red-500 text-xs mb-3">
+                    {deliveryErrors.contact}
+                  </div>
+                )}
                 <label
                   className="block text-rose-700 font-medium mb-2"
                   htmlFor="address"
@@ -151,10 +180,45 @@ export default function CartPage() {
                 </label>
                 <NominatimAutocomplete
                   value={delivery.address}
-                  onChange={(val) => setDelivery({ ...delivery, address: val })}
-                  onSelect={(val) => setDelivery({ ...delivery, address: val })}
-                  className="w-full mb-4 px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  onChange={(val) => {
+                    setDelivery({ ...delivery, address: val });
+                    if (!val) setDistanceKm(null);
+                  }}
+                  onSelect={(val, lat, lon) => {
+                    console.log("Selected delivery address coordinates:", {
+                      lat,
+                      lon,
+                    });
+                    setDelivery({ ...delivery, address: val, lat, lon });
+                    if (lat && lon) {
+                      const d = calcDistanceKm(
+                        parseFloat(lat),
+                        parseFloat(lon)
+                      );
+                      setDistanceKm(d);
+                      if (d > 50) {
+                        setAddressOutOfRange(
+                          "Address is out of range (max 50km)"
+                        );
+                      } else {
+                        setAddressOutOfRange(null);
+                      }
+                    } else {
+                      setDistanceKm(null);
+                    }
+                  }}
+                  className="w-full mb-1 px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300"
                 />
+                {deliveryErrors.address && (
+                  <div className="text-red-500 text-xs mb-1">
+                    {deliveryErrors.address}
+                  </div>
+                )}
+                {addressOutOfRange && (
+                  <div className="text-red-500 text-xs mb-3">
+                    {addressOutOfRange}
+                  </div>
+                )}
                 <label
                   className="block text-rose-700 font-medium mb-2 mt-4"
                   htmlFor="notes"
@@ -171,15 +235,35 @@ export default function CartPage() {
                   }
                   placeholder="Example: Leave at front desk, call on arrival”"
                 />
-                {deliveryError && (
-                  <div className="text-red-500 mb-4 text-center">
-                    {deliveryError}
+              </div>
+            )}
+            {/* Order Summary Section */}
+            {cart.length > 0 && (
+              <div className="mb-6 bg-rose-50 border border-pink-100 rounded-xl p-4 flex flex-col gap-2">
+                <div className="flex justify-between text-rose-700 font-medium">
+                  <span>Subtotal</span>
+                  <span>{toCurrency(subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-rose-700">
+                  <span>Delivery Fee</span>
+                  <span>
+                    {distanceKm === null ? "-" : toCurrency(deliveryFee)}
+                  </span>
+                </div>
+                {distanceKm !== null && (
+                  <div className="flex justify-between text-xs text-rose-400">
+                    <span>Distance</span>
+                    <span>{distanceKm.toFixed(2)} km</span>
                   </div>
                 )}
+                <div className="flex justify-between text-lg font-bold text-rose-800 border-t border-pink-100 pt-2 mt-2">
+                  <span>Order Total</span>
+                  <span>{toCurrency(orderTotal)}</span>
+                </div>
               </div>
             )}
             {!user && (
-              <div className="text-center text-rose-500 text-sm bg-rose-50 border border-pink-100 rounded-lg py-3 px-2 mb-6">
+              <div className="text-center text-rose-500 text-sm bg-rose-50 py-3 px-2 mb-6">
                 Are you part of the Rewards Program?{" "}
                 <button
                   className="text-rose-600 underline hover:text-rose-800 font-semibold"
