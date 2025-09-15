@@ -63,7 +63,7 @@ export default function CartPage() {
                   className="text-rose-600 underline hover:text-rose-800 font-semibold"
                   onClick={() => router.push("/auth")}
                 >
-                  Sign In to earn Brownie Points
+                  Sign In to earn BrowniePoints
                 </button>
               </div>
             )}

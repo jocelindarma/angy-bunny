@@ -73,8 +73,8 @@ export default function AuthPage() {
           className="mb-4"
           priority
         />
-        <h1 className="text-3xl font-bold text-rose-700 mb-2 text-center">
-          Welcome to Angy Bunny Rewards Program
+        <h1 className="text-2xl font-bold text-rose-700 mb-2 text-center">
+          Angy Bunny Rewards Program
         </h1>
         {isRecovery ? (
           success ? (
