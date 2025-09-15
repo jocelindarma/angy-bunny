@@ -5,7 +5,7 @@ import Image from "next/image";
 import brownieBunny from "@/../public/assets/brownie-cup-bunny.png";
 import dollarBunny from "@/../public/assets/dollar-bunny.jpg";
 
-export default function Loyalty() {
+export default function Rewards() {
   const router = useRouter();
   return (
     <div className="bg-rose-50 rounded-2xl shadow-sm border border-pink-100 p-8 text-center">
