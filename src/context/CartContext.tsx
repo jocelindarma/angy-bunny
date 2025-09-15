@@ -5,8 +5,8 @@ import { CartItem, MenuItem } from "@/lib/types";
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: MenuItem) => void;
-  removeFromCart: (id: number) => void;
-  updateQty: (id: number, qty: number) => void;
+  removeFromCart: (id: number, free?: boolean) => void;
+  updateQty: (id: number, qty: number, free?: boolean) => void;
   clearCart: () => void;
 }
 
@@ -23,19 +23,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   function addToCart(item: MenuItem) {
     setCart((prev) => {
-      const found = prev.find((i) => i.id === item.id);
+      if (item.free) {
+        const alreadyFree = prev.find((i) => i.id === item.id && i.free);
+        if (alreadyFree) return prev; // Only one free item allowed
+        return [...prev, { ...item, qty: 1, free: true }];
+      }
+      // Always treat paid as free: false
+      const found = prev.find((i) => i.id === item.id && i.free === false);
       if (found)
         return prev.map((i) =>
-          i.id === item.id ? { ...i, qty: i.qty + 1 } : i
+          i.id === item.id && i.free === false ? { ...i, qty: i.qty + 1 } : i
         );
-      return [...prev, { ...item, qty: 1 }];
+      return [...prev, { ...item, qty: 1, free: false }];
     });
   }
-  function removeFromCart(id: number) {
-    setCart((prev) => prev.filter((i) => i.id !== id));
+  function removeFromCart(id: number, free?: boolean) {
+    setCart((prev) => prev.filter((i) => !(i.id === id && i.free === !!free)));
   }
-  function updateQty(id: number, qty: number) {
-    setCart((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
+  function updateQty(id: number, qty: number, free?: boolean) {
+    setCart((prev) => prev.map((i) => {
+      if (i.id === id && i.free === !!free) {
+        // Prevent changing qty for free items
+        if (i.free) return { ...i, qty: 1 };
+        return { ...i, qty };
+      }
+      return i;
+    }));
   }
   function clearCart() {
     setCart([]);
@@ -43,7 +56,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQty, clearCart }}
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQty: (id, qty, free) => updateQty(id, qty, free),
+        clearCart,
+      }}
     >
       {children}
     </CartContext.Provider>

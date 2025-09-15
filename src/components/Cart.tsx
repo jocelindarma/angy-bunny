@@ -5,8 +5,8 @@ import { toCurrency } from "@/lib/currency";
 
 type Props = {
   cart: CartItem[];
-  updateQty: (id: number, qty: number) => void;
-  removeFromCart: (id: number) => void;
+  updateQty: (id: number, qty: number, free: boolean) => void;
+  removeFromCart: (id: number, free: boolean) => void;
 };
 
 export default function Cart({ cart, updateQty, removeFromCart }: Props) {
@@ -25,7 +25,7 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
         <div className="space-y-3">
           {cart.map((item) => (
             <div
-              key={item.id + (item.free ? "-free" : "")}
+              key={`${item.id}-${item.free ? "free" : "paid"}`}
               className="flex items-center justify-between"
             >
               <div className="text-rose-700">
@@ -43,7 +43,8 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
                   onChange={(e) =>
                     updateQty(
                       item.id,
-                      Math.max(1, parseInt(e.target.value || "1", 10))
+                      Math.max(1, parseInt(e.target.value || "1", 10)),
+                      !!item.free
                     )
                   }
                   className="w-14 mx-1 border border-rose-200 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-rose-300"
@@ -55,14 +56,14 @@ export default function Cart({ cart, updateQty, removeFromCart }: Props) {
               </div>
               <button
                 className="text-rose-500 hover:text-rose-600 underline decoration-dotted"
-                onClick={() => removeFromCart(item.id)}
+                onClick={() => removeFromCart(item.id, !!item.free)}
               >
                 Remove
               </button>
             </div>
           ))}
           <div className="font-bold text-right mt-4 text-rose-700">
-            Total:{" "}
+            Total: {" "}
             {toCurrency(
               cart.filter((i) => !i.free).reduce((sum, i) => sum + i.price * i.qty, 0)
             )}

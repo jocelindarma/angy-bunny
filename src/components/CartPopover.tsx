@@ -17,13 +17,20 @@ export default function CartPopover({ cart }: { cart: CartItem[] }) {
         <div className="space-y-2">
           {cart.map((item) => (
             <div
-              key={item.id}
+              key={`${item.id}-${item.free ? "free" : "paid"}`}
               className="flex items-center justify-between text-rose-700"
             >
               <span>
                 {item.name} × {item.qty}
+                {item.free && (
+                  <span className="ml-2 px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs font-bold">
+                    FREE
+                  </span>
+                )}
               </span>
-              <span>{toCurrency(item.price * item.qty)}</span>
+              <span>
+                {item.free ? "FREE" : toCurrency(item.price * item.qty)}
+              </span>
             </div>
           ))}
           <div className="font-bold text-right mt-2 text-rose-700">

@@ -14,12 +14,15 @@ export default function ProfilePage() {
   const [points, setPoints] = useState<number | null>(null);
   const [redeeming, setRedeeming] = useState(false);
   const [redeemSuccess, setRedeemSuccess] = useState(false);
+  const [redeemError, setRedeemError] = useState("");
   const router = useRouter();
   const { cart, updateQty, removeFromCart, clearCart, addToCart } = useCart();
 
   useEffect(() => {
     const getUserAndPoints = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
       if (user) {
         const { data, error } = await supabase
@@ -42,8 +45,15 @@ export default function ProfilePage() {
 
   const handleRedeem = async () => {
     if (!user || points === null || points < 100) return;
+    const hasFreeBrownie = cart.some(
+      (item) => item.name === "Brownie Cup" && item.free
+    );
+    if (hasFreeBrownie) {
+      setRedeemError("Patience, bunny!\nOnly one free brownie cup per hop");
+      setTimeout(() => setRedeemError(""), 2500);
+      return;
+    }
     setRedeeming(true);
-    // Subtract 100 points by inserting a negative change
     await supabase.from("loyalty_points").insert([
       {
         user_id: user.id,
@@ -55,11 +65,11 @@ export default function ProfilePage() {
     setRedeeming(false);
     setRedeemSuccess(true);
     // Add Fudge Brownie to cart
-    const brownie = MENU.find((item) => item.name === "Fudge Brownie");
+    const brownie = MENU.find((item) => item.name === "Brownie Cup");
     if (brownie) addToCart({ ...brownie, free: true });
     setTimeout(() => {
       setRedeemSuccess(false);
-      router.push("/cart");
+      router.push("/");
     }, 2000);
   };
 
@@ -67,7 +77,9 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[linear-gradient(180deg,#FFF7F9_0%,#FFFDF7_100%)] px-4">
         <div className="bg-white rounded-2xl shadow-md border border-pink-100 p-8 w-full max-w-md text-center">
-          <h2 className="text-2xl font-bold text-rose-700 mb-2">Not signed in</h2>
+          <h2 className="text-2xl font-bold text-rose-700 mb-2">
+            Not signed in
+          </h2>
           <button
             className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-lg font-semibold text-lg transition mt-4"
             onClick={() => router.push("/auth")}
@@ -100,31 +112,48 @@ export default function ProfilePage() {
           {user.email ? user.email.split("@")[0] : "-"}
         </h2>
         <div className="text-rose-500 mb-6 text-sm">
-          Member since {user.created_at ?
-            new Date(user.created_at).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric"
-            }) : "-"}
+          Member since{" "}
+          {user.created_at
+            ? new Date(user.created_at).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })
+            : "-"}
         </div>
         <div className="bg-rose-50 border border-pink-100 rounded-xl px-6 py-4 text-center mb-6">
-          <div className="text-lg text-rose-700 font-semibold">BrowniePoints</div>
-          <div className="text-3xl font-extrabold text-rose-600 mt-1">{points !== null ? points : "..."}</div>
+          <div className="text-lg text-rose-700 font-semibold">
+            BrowniePoints
+          </div>
+          <div className="text-3xl font-extrabold text-rose-600 mt-1">
+            {points !== null ? points : "..."}
+          </div>
           {points !== null && points >= 100 && (
             <button
               className="mt-4 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-60 whitespace-normal break-words text-center max-w-xs mx-auto"
               onClick={handleRedeem}
               disabled={redeeming}
             >
-              {redeeming ? "Processing..." : (
+              {redeeming ? (
+                "Processing..."
+              ) : (
                 <>
-                  Redeem 100 Points<br />for a Free Brownie Cup
+                  Redeem 100 Points
+                  <br />
+                  for a Free Brownie Cup
                 </>
               )}
             </button>
           )}
           {redeemSuccess && (
-            <div className="mt-2 text-green-600 font-semibold">Sweet! Your free brownie cup is hopping into your cart 🎉</div>
+            <div className="mt-2 text-green-600 font-semibold">
+              Sweet! Your free brownie cup is hopping into your cart 🎉
+            </div>
+          )}
+          {redeemError && (
+            <div className="mt-2 text-red-500 font-semibold whitespace-pre-line">
+              {redeemError}
+            </div>
           )}
         </div>
         <button

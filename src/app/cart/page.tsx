@@ -17,6 +17,10 @@ export default function CartPage() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
+  // Import the custom hook for free brownie refund
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { useRemoveFreeBrownieWithRefund } = require("@/lib/useRemoveFreeBrownieWithRefund");
+  const handleRemoveFreeBrownie = useRemoveFreeBrownieWithRefund(user);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -44,7 +48,13 @@ export default function CartPage() {
             <Cart
               cart={cart}
               updateQty={updateQty}
-              removeFromCart={removeFromCart}
+              removeFromCart={(id, free) => {
+                if (free) {
+                  handleRemoveFreeBrownie(id);
+                } else {
+                  removeFromCart(id, false);
+                }
+              }}
             />
             {!user && (
               <div className="mb-4 text-center text-rose-500 text-sm bg-rose-50 border border-pink-100 rounded-lg py-3 px-2">
