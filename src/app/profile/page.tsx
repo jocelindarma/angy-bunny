@@ -93,7 +93,9 @@ export default function ProfilePage() {
           className="mb-2"
           priority
         />
-        <h2 className="text-2xl font-bold text-rose-700 mb-1">{user.email}</h2>
+        <h2 className="text-2xl font-bold text-rose-700 mb-1">
+          {user.email ? user.email.split("@")[0] : "-"}
+        </h2>
         <div className="text-rose-500 mb-6">
           Member since {user.created_at ?
             new Date(user.created_at).toLocaleDateString("en-GB", {
@@ -107,11 +109,15 @@ export default function ProfilePage() {
           <div className="text-3xl font-extrabold text-rose-600 mt-1">{points !== null ? points : "..."}</div>
           {points !== null && points >= 100 && (
             <button
-              className="mt-4 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-60"
+              className="mt-4 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-60 whitespace-normal break-words text-center max-w-xs mx-auto"
               onClick={handleRedeem}
               disabled={redeeming}
             >
-              {redeeming ? "Processing..." : "Redeem 100 Points for Free Brownie"}
+              {redeeming ? "Processing..." : (
+                <>
+                  Redeem 100 Points<br />for a Free Brownie Cup
+                </>
+              )}
             </button>
           )}
           {redeemSuccess && (

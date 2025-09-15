@@ -4,7 +4,7 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
-import croissantBunny from "@/../public/assets/croissant-bunny.png";
+import rewardsBunny from "@/../public/assets/rewards-bunny.jpg";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
@@ -34,7 +34,7 @@ export default function AuthPage() {
           ← Back to Shop
         </button>
         <Image
-          src={croissantBunny}
+          src={rewardsBunny}
           alt="Croissant Bunny"
           width={80}
           height={80}
