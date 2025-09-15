@@ -22,7 +22,7 @@ export default function Menu({ items, onAdd }: Props) {
           return (
             <div
               key={item.id}
-              className="flex flex-col items-center text-center p-4 rounded-xl bg-rose-50/50 hover:shadow-md transition-shadow"
+              className="flex flex-col items-center text-center p-4 rounded-xl bg-rose-50/50 hover:shadow-md transition-shadow h-full min-h-[300px] sm:min-h-[300px]"
             >
               <img
                 src={item.image}
@@ -35,6 +35,7 @@ export default function Menu({ items, onAdd }: Props) {
               <div className="text-rose-600 font-semibold">
                 {toCurrency(item.price)}
               </div>
+              <div className="flex-grow" />
               {carted ? (
                 <div className="mt-3 flex items-center gap-2">
                   <button

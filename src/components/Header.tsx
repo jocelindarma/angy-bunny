@@ -13,7 +13,7 @@ export default function Header() {
         <CartButton cart={cart} />
         <UserPoints />
       </div>
-      <div className="max-w-3xl mx-auto px-4 text-center">
+  <div className="max-w-3xl mx-auto px-4 text-center mt-15 sm:mt-0">
         <Image
           src="/assets/angy-bunny.png"
           alt="Angy Bunny"
