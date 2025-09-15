@@ -64,6 +64,12 @@ export default function CartPage() {
             >
               {paying ? "Processing..." : "Pay Now"}
             </button>
+            <button
+              className="w-full mt-4 text-rose-400 underline hover:text-rose-600"
+              onClick={() => router.push("/")}
+            >
+              Back to Shop
+            </button>
           </>
         ) : (
           <>

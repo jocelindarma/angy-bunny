@@ -44,7 +44,7 @@ export default function Loyalty() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-pink-100 flex flex-col items-center text-center">
           <h3 className="text-xl font-semibold text-rose-700 mb-2">Redeem</h3>
           <p className="text-rose-600 mb-1">
-            Trade 100 BrowniePoints for a FREE box of brownies
+            Trade 100 BrowniePoints for a FREE Brownie Cup
           </p>
           <Image
             src={brownieBunny}

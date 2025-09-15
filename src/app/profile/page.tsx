@@ -57,7 +57,10 @@ export default function ProfilePage() {
     // Add Fudge Brownie to cart
     const brownie = MENU.find((item) => item.name === "Fudge Brownie");
     if (brownie) addToCart({ ...brownie, free: true });
-    setTimeout(() => setRedeemSuccess(false), 3000);
+    setTimeout(() => {
+      setRedeemSuccess(false);
+      router.push("/cart");
+    }, 2000);
   };
 
   if (!user) {
@@ -96,7 +99,7 @@ export default function ProfilePage() {
         <h2 className="text-2xl font-bold text-rose-700 mb-1">
           {user.email ? user.email.split("@")[0] : "-"}
         </h2>
-        <div className="text-rose-500 mb-6">
+        <div className="text-rose-500 mb-6 text-sm">
           Member since {user.created_at ?
             new Date(user.created_at).toLocaleDateString("en-GB", {
               day: "2-digit",
@@ -105,7 +108,7 @@ export default function ProfilePage() {
             }) : "-"}
         </div>
         <div className="bg-rose-50 border border-pink-100 rounded-xl px-6 py-4 text-center mb-6">
-          <div className="text-lg text-rose-700 font-semibold">Loyalty Points</div>
+          <div className="text-lg text-rose-700 font-semibold">BrowniePoints</div>
           <div className="text-3xl font-extrabold text-rose-600 mt-1">{points !== null ? points : "..."}</div>
           {points !== null && points >= 100 && (
             <button
@@ -121,7 +124,7 @@ export default function ProfilePage() {
             </button>
           )}
           {redeemSuccess && (
-            <div className="mt-2 text-green-600 font-semibold">You redeemed a free brownie! 🎉</div>
+            <div className="mt-2 text-green-600 font-semibold">Sweet! Your free brownie cup is hopping into your cart 🎉</div>
           )}
         </div>
         <button
